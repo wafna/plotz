@@ -9,17 +9,9 @@ import java.nio.file.Files
 class TestPNG {
     @Test
     fun test() {
-        val dataset = DefaultCategoryDataset().apply {
-            addValue(35.0, "Agency", "CIA")
-            addValue(45.0, "Agency", "FBI")
-            addValue(15.0, "Agency", "DIA")
-            addValue(75.0, "Agency", "NSA")
-            addValue(25.0, "Agency", "NRO")
-            addValue(45.0, "Agency", "NGA")
-        }
-        val (width, height) = 300 to 300
-        val chart = createSpiderWebPlot(dataset, width, height)
-        val bytes = exportToPNG(chart, width, height)
+        val data = mapOf("Agency" to listOf("NSA" to 10.0, "CIA" to 15.0, "FBI" to 8.0, "DIA" to 20.0))
+        val chart = createSpiderWebPlot(data, 500, 500)
+        val bytes = chart.exportToPNG()
         val tempFile = File.createTempFile("chart-demo", ".png").toPath()
         try {
             Files.write(tempFile, bytes)

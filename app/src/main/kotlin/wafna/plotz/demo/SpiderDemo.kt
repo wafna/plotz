@@ -27,9 +27,7 @@ class ChartPanel : JPanel() {
         super.paintComponent(g)
         val g = g as Graphics2D
         if (null != chart) {
-            g.drawImage(chart, AffineTransform(), object : ImageObserver {
-                override fun imageUpdate(p0: Image?, p1: Int, p2: Int, p3: Int, p4: Int, p5: Int): Boolean = true
-            })
+            g.drawImage(chart, AffineTransform()) { p0, p1, p2, p3, p4, p5 -> true }
         }
     }
 }

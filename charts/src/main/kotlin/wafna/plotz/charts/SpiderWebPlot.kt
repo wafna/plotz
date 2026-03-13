@@ -100,7 +100,7 @@ fun createSpiderWebPlot(
             // Groups
             stroke = BasicStroke(5f)
             data.forEach { groupName, data ->
-                withColor(settings.dataLines.color ?: settings.defaultColor) {
+                withColor(Color.RED) {
                     val path = buildPath {
                         data.zip(angles) { data, theta ->
                             val r = data.second / scale
