@@ -1,17 +1,15 @@
 package wafna.plotz.charts
 
-import javax.imageio.ImageIO
 import kotlin.math.PI
 import kotlin.math.max
 import wafna.exocorps.util.buildPath
-import wafna.exocorps.util.centeredText
-import wafna.exocorps.util.withColor
-import wafna.exocorps.util.withFont
-import wafna.exocorps.util.withGraphics2D
+import wafna.plotz.graphics.centeredText
+import wafna.plotz.graphics.withColor
+import wafna.plotz.graphics.withFont
+import wafna.plotz.graphics.withGraphics2D
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.image.BufferedImage
-import java.io.ByteArrayOutputStream
 
 class LineSettings {
     var color: Color? = null
@@ -114,9 +112,3 @@ fun createSpiderWebPlot(
     }
     return image
 }
-
-fun BufferedImage.exportToPNG(): ByteArray =
-    ByteArrayOutputStream().use { stream ->
-        ImageIO.write(this, "png", stream)
-        stream.toByteArray()
-    }

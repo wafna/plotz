@@ -1,5 +1,8 @@
 package wafna.exocorps.util
 
+import wafna.plotz.graphics.Path2
+import wafna.plotz.graphics.Point2
+
 class PathBuilder {
     internal val path = Path2()
     internal var started = false

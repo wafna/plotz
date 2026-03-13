@@ -1,8 +1,8 @@
 package wafna.plotz.demo
 
 import org.junit.jupiter.api.Test
+import wafna.plotz.graphics.exportToPNG
 import wafna.plotz.charts.createSpiderWebPlot
-import wafna.plotz.charts.exportToPNG
 import java.io.File
 import java.nio.file.Files
 

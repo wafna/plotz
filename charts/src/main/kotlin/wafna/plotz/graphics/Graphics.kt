@@ -1,5 +1,6 @@
-package wafna.exocorps.util
+package wafna.plotz.graphics
 
+import javax.imageio.ImageIO
 import java.awt.Color
 import java.awt.Font
 import java.awt.Graphics
@@ -8,6 +9,7 @@ import java.awt.geom.Path2D
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
 
 typealias Point2 = Point2D.Double
 typealias Path2 = Path2D.Double
@@ -57,3 +59,9 @@ fun Graphics.centeredTextBox(text: String, center: Point2): Rectangle2D {
     val top = center.y - (stringHeight / 2)
     return Rectangle2D.Double(left, top, stringWidth, stringHeight)
 }
+
+fun BufferedImage.exportToPNG(): ByteArray =
+    ByteArrayOutputStream().use { stream ->
+        ImageIO.write(this, "png", stream)
+        stream.toByteArray()
+    }
