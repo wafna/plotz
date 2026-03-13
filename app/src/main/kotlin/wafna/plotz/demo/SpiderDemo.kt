@@ -1,7 +1,9 @@
 package wafna.plotz.demo
 
+import javax.swing.BoxLayout
 import javax.swing.JFrame
 import javax.swing.JPanel
+import wafna.plotz.charts.createSpiderWebPlot
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Graphics
@@ -34,8 +36,9 @@ class ChartPanel : JPanel() {
 
 class DemoApp(s: String) : JFrame(s) {
     val chartPanel = ChartPanel().apply {
-        preferredSize = Dimension(500, 270)
+        preferredSize = Dimension(500, 500)
         contentPane = this
+        layout = BoxLayout(this, 1)
     }
 
     init {
@@ -45,6 +48,7 @@ class DemoApp(s: String) : JFrame(s) {
 
     fun setChart(image: BufferedImage) {
         chartPanel.setChart(image)
+        repaint()
     }
 }
 
@@ -52,7 +56,7 @@ fun main() {
     DemoApp("JFreeChart Demo").apply {
         pack()
         isVisible = true
-        val chart = createSpiderWebPlot(200, 100)
+        val chart = createSpiderWebPlot(500, 500)
         setChart(chart)
     }
 }
