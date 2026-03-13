@@ -53,10 +53,11 @@ class DemoApp(s: String) : JFrame(s) {
 }
 
 fun main() {
-    DemoApp("JFreeChart Demo").apply {
+    DemoApp("Plotz!").apply {
         pack()
         isVisible = true
-        val chart = createSpiderWebPlot(500, 500)
+        val data = mapOf("Agency" to listOf("NSA" to 10.0, "CIA" to 15.0, "FBI" to 8.0, "DIA" to 20.0))
+        val chart = createSpiderWebPlot(data, 500, 500)
         setChart(chart)
     }
 }

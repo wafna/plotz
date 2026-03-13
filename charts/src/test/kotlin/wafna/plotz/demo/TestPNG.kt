@@ -1,6 +1,5 @@
 package wafna.plotz.demo
 
-import org.jfree.data.category.DefaultCategoryDataset
 import org.junit.jupiter.api.Test
 import wafna.plotz.charts.createSpiderWebPlot
 import wafna.plotz.charts.exportToPNG
