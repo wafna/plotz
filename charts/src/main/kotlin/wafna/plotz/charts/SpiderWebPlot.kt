@@ -1,8 +1,12 @@
 package wafna.plotz.charts
 
 import kotlin.math.PI
+import kotlin.math.floor
+import kotlin.math.log
 import kotlin.math.max
+import kotlin.math.pow
 import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 import wafna.exocorps.util.buildPath
 import wafna.plotz.graphics.Line
 import wafna.plotz.graphics.Point
@@ -59,6 +63,11 @@ fun createSpiderWebPlot(
     val maxY = data.entries.fold(0.0) { max, group ->
         group.value.fold(max) { max, y -> max(max, y.second) }
     }
+    val maxRadial = floor(log(maxY, 10.0)).let { mag ->
+        val u = 10.0.pow(mag)
+        ((maxY + u) / u).roundToLong() * u
+    }
+
 //    val radialHashes =
     val settings = PlotSettings().apply { configure() }
     val image = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
@@ -86,7 +95,7 @@ fun createSpiderWebPlot(
         val labelRadius = extent - margin / 2.0
         // points per pixel
         val scale = when (val scale = settings.scaling) {
-            Scaling.Auto -> maxY
+            Scaling.Auto -> maxRadial
             is Scaling.Fixed -> scale.scale
         } / maxRadius
         // Grid lines.
@@ -107,7 +116,10 @@ fun createSpiderWebPlot(
                 centeredText(
                     (ds * scale).roundToInt().toString(),
                     center.movePolar(ds, angle + magOffset)
-                )
+                ) {
+                    // erase the grid lines around the numbers for legibility.
+                    withColor(settings.backgroundColor) { fill(this) }
+                }
             }
         }
         font = labelFont

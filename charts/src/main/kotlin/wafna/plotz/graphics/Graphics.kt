@@ -39,8 +39,8 @@ fun Graphics.withColor(temp: Color, block: () -> Unit) {
 /**
  * Overrides the font for the duration of the block.
  */
-fun Graphics.centeredText(text: String, center: Point, withBox: (Rectangle2D) -> Unit = {}) {
-    val rect = centeredTextBox(text, center).also { withBox(it) }
+fun Graphics.centeredText(text: String, center: Point, withBox: Rectangle2D.() -> Unit = {}) {
+    val rect = centeredTextBox(text, center).apply { withBox() }
     drawString(text, rect.x.toInt(), rect.y.toInt() + rect.height.toInt())
 }
 
