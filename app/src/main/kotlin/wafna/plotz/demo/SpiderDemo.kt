@@ -3,15 +3,19 @@ package wafna.plotz.demo
 import javax.swing.BoxLayout
 import javax.swing.JFrame
 import javax.swing.JPanel
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.ln
+import kotlin.math.sqrt
+import kotlin.random.Random
 import wafna.plotz.charts.createSpiderWebPlot
+import java.awt.Color
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Graphics
 import java.awt.Graphics2D
-import java.awt.Image
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
-import java.awt.image.ImageObserver
 
 class ChartPanel : JPanel() {
     init {
@@ -33,15 +37,15 @@ class ChartPanel : JPanel() {
 }
 
 class DemoApp(s: String) : JFrame(s) {
+    init {
+        defaultCloseOperation = EXIT_ON_CLOSE
+        setLocationRelativeTo(null)
+    }
+
     val chartPanel = ChartPanel().apply {
         preferredSize = Dimension(500, 500)
         contentPane = this
         layout = BoxLayout(this, 1)
-    }
-
-    init {
-        defaultCloseOperation = EXIT_ON_CLOSE
-        setLocationRelativeTo(null)
     }
 
     fun setChart(image: BufferedImage) {
@@ -50,12 +54,26 @@ class DemoApp(s: String) : JFrame(s) {
     }
 }
 
+private fun score(mean: Double, stdDev: Double) =
+    mean + (stdDev * sqrt(-2 * ln(Random.nextDouble())) * cos(2 * PI * Random.nextDouble()))
+
 fun main() {
     DemoApp("Plotz!").apply {
         pack()
         isVisible = true
-        val data = mapOf("Agency" to listOf("NSA" to 10.0, "CIA" to 15.0, "FBI" to 8.0, "DIA" to 20.0))
-        val chart = createSpiderWebPlot(data, 500, 500)
+        val agencies = listOf("NSA", "CIA", "FBI", "DIA", "DEA", "ATF")
+        val data = mapOf(
+            "This" to agencies.map { it to score(50.0, 5.0) },
+            "That" to agencies.map { it to score(60.0, 10.0) },
+            "Other" to agencies.map { it to score(70.0, 5.0) },
+        )
+        val chart = createSpiderWebPlot(data, 500, 500) {
+            with(chartLines) {
+                color = Color.GRAY
+                thickness = .5
+            }
+            dataColors = listOf(Color.GREEN, Color.BLUE, Color.ORANGE)
+        }
         setChart(chart)
     }
 }
