@@ -1,12 +1,12 @@
 package wafna.exocorps.util
 
-import wafna.plotz.graphics.Path2
-import wafna.plotz.graphics.Point2
+import wafna.plotz.graphics.Path
+import wafna.plotz.graphics.Point
 
 class PathBuilder {
-    internal val path = Path2()
+    internal val path = Path()
     internal var started = false
-    fun add(point: Point2) {
+    fun add(point: Point) {
         if (!started) {
             path.moveTo(point.x, point.y)
             started = true
@@ -16,9 +16,9 @@ class PathBuilder {
     }
 }
 
-fun buildPath(block: PathBuilder.() -> Unit): Path2 =
+fun buildPath(block: PathBuilder.() -> Unit): Path =
     PathBuilder().apply(block).path.apply { closePath() }
 
-fun Collection<Point2>.buildPath(): Path2 = buildPath {
+fun Collection<Point>.buildPath(): Path = buildPath {
     forEach { add(it) }
 }

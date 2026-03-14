@@ -6,8 +6,10 @@ import javax.swing.JPanel
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.ln
+import kotlin.math.max
 import kotlin.math.sqrt
 import kotlin.random.Random
+import wafna.plotz.charts.Scaling
 import wafna.plotz.charts.createSpiderWebPlot
 import java.awt.Color
 import java.awt.Dimension
@@ -57,20 +59,31 @@ class DemoApp(s: String) : JFrame(s) {
 private fun score(mean: Double, stdDev: Double) =
     mean + (stdDev * sqrt(-2 * ln(Random.nextDouble())) * cos(2 * PI * Random.nextDouble()))
 
+private fun scores(n: Int, mean: Double, stdDev: Double) =
+    List(n) { max(0.0, score(mean, stdDev)) }
+
 fun main() {
     DemoApp("Plotz!").apply {
         pack()
         isVisible = true
         val agencies = listOf("NSA", "CIA", "FBI", "DIA", "DEA", "ATF")
-        val data = mapOf(
-            "This" to agencies.map { it to score(50.0, 5.0) },
-            "That" to agencies.map { it to score(60.0, 10.0) },
-            "Other" to agencies.map { it to score(70.0, 5.0) },
-        )
+        val data = agencies.size.let { size ->
+            mapOf(
+                "Alfa" to agencies.zip(scores(size, 50.0, 25.0)),
+                "Bravo" to agencies.zip(scores(size,60.0, 15.0)),
+                "Charlie" to agencies.zip(scores(size,70.0, 10.0)),
+                "Delta" to agencies.zip(scores(size,65.0, 15.0)),
+            )
+        }
         val chart = createSpiderWebPlot(data, 500, 500) {
+            scaling = Scaling.Auto // Scaling.Fixed(25.0)
             with(chartLines) {
                 color = Color.GRAY
                 thickness = .5
+            }
+            with(this.labels) {
+                color = Color.BLACK
+                size = 14.0
             }
             dataColors = listOf(Color.GREEN, Color.BLUE, Color.ORANGE)
         }

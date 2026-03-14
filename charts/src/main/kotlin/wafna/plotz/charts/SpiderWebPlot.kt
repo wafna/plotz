@@ -2,23 +2,27 @@ package wafna.plotz.charts
 
 import kotlin.math.PI
 import kotlin.math.max
+import kotlin.math.roundToInt
 import wafna.exocorps.util.buildPath
+import wafna.plotz.graphics.Line
+import wafna.plotz.graphics.Point
+import wafna.plotz.graphics.Rectangle
 import wafna.plotz.graphics.centeredText
 import wafna.plotz.graphics.withColor
-import wafna.plotz.graphics.withFont
 import wafna.plotz.graphics.withGraphics2D
 import java.awt.BasicStroke
 import java.awt.Color
+import java.awt.Font
 import java.awt.image.BufferedImage
 
 class LineSettings {
     var color: Color? = null
-    var thickness: Double = 0.5
+    var thickness: Double? = 0.5
 }
 
 class LabelSettings {
     var color: Color? = null
-    var size: Double = 16.0
+    var size: Double? = null
 }
 
 sealed class Scaling {
@@ -55,6 +59,7 @@ fun createSpiderWebPlot(
     val maxY = data.entries.fold(0.0) { max, group ->
         group.value.fold(max) { max, y -> max(max, y.second) }
     }
+//    val radialHashes =
     val settings = PlotSettings().apply { configure() }
     val image = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
     image.withGraphics2D {
@@ -64,60 +69,81 @@ fun createSpiderWebPlot(
             fill(bounds)
         }
         val center = Point(width / 2.0, height / 2.0)
+        // The maximum square real estate.
         val extent = max(center.x, center.y)
-        val maxRadius = extent * 0.9
-        val labelRadius = extent * 0.95
+        // We need to leave room for the labels.
+        val labelFont =
+            if (null == settings.labels.size) font
+            else font.deriveFont(Font.BOLD, settings.labels.size!!.toFloat())
+        val margin = getFontMetrics(labelFont).let { metrics ->
+            keys.fold(metrics.ascent.toDouble()) { max, key ->
+                max(max, metrics.stringWidth(key).toDouble())
+            }
+        } * 1.05 // plus some padding
+
+        val maxRadius = extent - margin
+        require(0.0 < maxRadius) { "Not enough room!" }
+        val labelRadius = extent - margin / 2.0
         // points per pixel
         val scale = when (val scale = settings.scaling) {
             Scaling.Auto -> maxY
             is Scaling.Fixed -> scale.scale
         } / maxRadius
         // Grid lines.
-        val groups = data.keys
+        val gridLineColor = settings.chartLines.color ?: settings.defaultColor
+        color = gridLineColor
+        stroke = BasicStroke(settings.chartLines.thickness?.toFloat() ?: 1f)
         val angles = (2 * PI / keys.size).let { dt ->
-            (0 until keys.size).map { i ->
-                i * dt - PI / 2.0
+            (0 until keys.size).map { it * dt - PI / 2.0 }
+        }
+        // concentric hashes
+        (1..4).forEach { i ->
+            val ds = i * maxRadius / 4
+            val w = (ds * 2).toInt()
+            drawOval((center.x - ds).toInt(), (center.y - ds).toInt(), w, w)
+            // magnitudes
+            val magOffset = PI / keys.size
+            angles.forEach { angle ->
+                centeredText(
+                    (ds * scale).roundToInt().toString(),
+                    center.movePolar(ds, angle + magOffset)
+                )
             }
         }
-        withColor(settings.defaultColor) {
-            val gridLineColor = settings.chartLines.color ?: settings.defaultColor
-            keys.zip(angles).forEach { (key, theta) ->
-                stroke = BasicStroke(settings.chartLines.thickness.toFloat())
-                withColor(gridLineColor) {
-                    draw(Line(center, center.movePolar(maxRadius, theta)))
-                    (1..4).forEach { i ->
-                        val ds = i * maxRadius / 4
-                        val w = (ds * 2).toInt()
-                        drawOval((center.x - ds).toInt(), (center.y - ds).toInt(), w, w)
-                    }
-                    withFont(font.deriveFont(settings.labels.size.toFloat())) {
-                        centeredText(key, center.movePolar(labelRadius, theta))
-                    }
-                }
-            }
-            // Groups
+        font = labelFont
+        keys.zip(angles).forEach { (key, theta) ->
+            // radial hashes
+            draw(Line(center, center.movePolar(maxRadius, theta)))
+            // labels
+            color = settings.labels.color ?: settings.defaultColor
+            centeredText(key, center.movePolar(labelRadius, theta))
+        }
+        // Data
+        if (null != settings.dataLines.thickness)
             stroke = BasicStroke(5f)
-            val colors = settings.dataColors.let {
-                val need = data.size - it.size
-                if (0 < need) {
-                    buildList {
-                        addAll(settings.dataColors)
-                        repeat(need) { add(settings.defaultColor) }
-                    }
-                } else it
-            }
-            data.toList().zip(colors).forEach { (data, color) ->
-                withColor(color) {
-                    val path = buildPath {
-                        data.second.zip(angles) { data, theta ->
-                            val r = data.second / scale
-                            add(center.movePolar(r, theta))
-                        }
-                    }
-                    draw(path)
+        // Fill the list with the default color if it's too short.
+        val colors = settings.dataColors.let {
+            val defaultColor = settings.dataLines.color ?: settings.defaultColor
+            val need = data.size - it.size
+            if (0 < need) {
+                buildList {
+                    addAll(settings.dataColors)
+                    repeat(need) { add(defaultColor) }
                 }
+            } else it
+        }
+        data.toList().zip(colors).forEach { (data, color) ->
+            withColor(color) {
+                val path = buildPath {
+                    data.second.zip(angles) { data, theta ->
+                        val r = data.second / scale
+                        add(center.movePolar(r, theta))
+                    }
+                }
+                draw(path)
             }
         }
     }
+
     return image
 }
