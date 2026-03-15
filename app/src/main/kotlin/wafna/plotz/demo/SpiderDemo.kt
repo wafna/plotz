@@ -76,7 +76,7 @@ fun main() {
             )
         }
         val chart = createSpiderWebPlot(data, 500, 500) {
-            scaling = Scaling.Auto // Scaling.Fixed(25.0)
+            scaling = Scaling.Auto() // Scaling.Fixed(25.0)
             with(chartLines) {
                 color = Color.GRAY
                 thickness = .5

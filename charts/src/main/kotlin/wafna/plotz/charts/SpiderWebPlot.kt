@@ -30,8 +30,9 @@ class LabelSettings {
 }
 
 sealed class Scaling {
-    data object Auto : Scaling()
-    data class Fixed(val scale: Double) : Scaling()
+    // Makes the outermost radial a nice round number up from the max value.
+    data class Auto(val hashes: Int = 4) : Scaling()
+    data class Fixed(val hash: Double) : Scaling()
 }
 
 class PlotSettings {
@@ -41,7 +42,7 @@ class PlotSettings {
     var dataLines = LineSettings()
     var labels = LabelSettings()
     var dataColors = emptyList<Color>()
-    var scaling: Scaling = Scaling.Auto
+    var scaling: Scaling = Scaling.Auto()
 }
 
 fun createSpiderWebPlot(
@@ -95,8 +96,8 @@ fun createSpiderWebPlot(
         val labelRadius = extent - margin / 2.0
         // points per pixel
         val scale = when (val scale = settings.scaling) {
-            Scaling.Auto -> maxRadial
-            is Scaling.Fixed -> scale.scale
+            is Scaling.Auto -> maxRadial
+            is Scaling.Fixed -> TODO("")
         } / maxRadius
         // Grid lines.
         val gridLineColor = settings.chartLines.color ?: settings.defaultColor
