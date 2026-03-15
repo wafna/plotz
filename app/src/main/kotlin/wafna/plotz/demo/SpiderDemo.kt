@@ -41,7 +41,6 @@ class ChartPanel : JPanel() {
 class DemoApp(s: String) : JFrame(s) {
     init {
         defaultCloseOperation = EXIT_ON_CLOSE
-        setLocationRelativeTo(null)
     }
 
     val chartPanel = ChartPanel().apply {
@@ -80,6 +79,7 @@ fun main() {
         }
         setChart(chart)
         pack()
+        setLocationRelativeTo(null)
         isVisible = true
     }
 }
