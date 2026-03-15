@@ -71,8 +71,7 @@ fun main() {
             mapOf(
                 "Alfa" to agencies.zip(scores(size, 50.0, 25.0)),
                 "Bravo" to agencies.zip(scores(size,60.0, 15.0)),
-                "Charlie" to agencies.zip(scores(size,70.0, 10.0)),
-                "Delta" to agencies.zip(scores(size,65.0, 15.0)),
+                "Charlie" to agencies.zip(scores(size,70.0, 20.0)),
             )
         }
         val chart = createSpiderWebPlot(data, 500, 500) {
