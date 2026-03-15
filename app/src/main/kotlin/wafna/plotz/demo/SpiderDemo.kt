@@ -3,6 +3,7 @@ package wafna.plotz.demo
 import javax.swing.BoxLayout
 import javax.swing.JFrame
 import javax.swing.JPanel
+import javax.swing.WindowConstants.EXIT_ON_CLOSE
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.ln
@@ -39,12 +40,8 @@ class ChartPanel : JPanel() {
 }
 
 class DemoApp(s: String) : JFrame(s) {
-    init {
-        defaultCloseOperation = EXIT_ON_CLOSE
-    }
-
     val chartPanel = ChartPanel().apply {
-        preferredSize = Dimension(500, 500)
+        preferredSize = Dimension(1000, 1000)
         contentPane = this
         layout = BoxLayout(this, 1)
     }
@@ -63,19 +60,20 @@ private fun scores(n: Int, mean: Double, stdDev: Double) =
 
 fun main() {
     DemoApp("Plotz!").apply {
+        defaultCloseOperation = EXIT_ON_CLOSE
         val groups = listOf("Alfa", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf")
         val data = groups.size.let { size ->
-            mapOf(
-                "Bing" to groups.zip(scores(size, 50.0, 25.0)),
-                "Bang" to groups.zip(scores(size, 60.0, 15.0)),
-                "Boom" to groups.zip(scores(size, 70.0, 20.0)),
+            listOf(
+                groups.zip(scores(size, 50.0, 25.0)),
+                groups.zip(scores(size, 60.0, 15.0)),
+                groups.zip(scores(size, 70.0, 20.0)),
             )
         }
-        val chart = createSpiderWebPlot(data, 500, 500) {
+        val chart = createSpiderWebPlot(data, 1000, 1000) {
             scaling = Scaling.Fixed(25.0)
             dataLines.colors = listOf(Color.GREEN, Color.BLUE, Color.MAGENTA)
             dataLines.thickness = 4.0
-            labels.size = 14.0
+            labels.size = 16.0
         }
         setChart(chart)
         pack()

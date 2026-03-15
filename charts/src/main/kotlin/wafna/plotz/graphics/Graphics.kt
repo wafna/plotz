@@ -17,10 +17,10 @@ typealias Point = Point2D.Double
 typealias Line = Line2D.Double
 typealias Path = Path2D.Double
 
-fun <T> BufferedImage.withGraphics2D(f: Graphics2D.() -> T): T {
+fun BufferedImage.withGraphics2D(f: Graphics2D.() -> Unit): BufferedImage = apply {
     val g2 = createGraphics()
     try {
-        return g2.f()
+        g2.f()
     } finally {
         g2.dispose()
     }

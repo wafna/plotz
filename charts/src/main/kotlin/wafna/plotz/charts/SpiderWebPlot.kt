@@ -47,24 +47,24 @@ class PlotSettings {
 }
 
 fun createSpiderWebPlot(
-    data: Map<String, List<Pair<String, Double>>>,
+    data: List<List<Pair<String, Double>>>,
     width: Int,
     height: Int,
     configure: PlotSettings.() -> Unit = {}
 ): BufferedImage {
     val settings = PlotSettings().apply { configure() }
     data.forEach {
-        require(it.value.map { it.second }.all { 0 <= it }) { "ALl data values must be positive." }
+        require(it.map { it.second }.all { 0 <= it }) { "ALl data values must be positive." }
     }
     val dataGroupCount = data.size
-    val keys = data.iterator().next().value.map { it.first }
+    val keys = data.iterator().next().map { it.first }
     if (0 < dataGroupCount) {
-        require(data.all { keys == it.value.map { it.first } }) {
+        require(data.all { keys == it.map { it.first } }) {
             "All data groups must have the same keys."
         }
     }
-    val maxY = data.entries.fold(0.0) { max, group ->
-        group.value.fold(max) { max, y -> max(max, y.second) }
+    val maxY = data.fold(0.0) { max, group ->
+        group.fold(max) { max, y -> max(max, y.second) }
     }
 
     val radials = when (val scaling = settings.scaling) {
@@ -73,28 +73,25 @@ fun createSpiderWebPlot(
             val m = ceil(maxY / 10.0) * 10.0
             val u = m / scaling.hashes
             val count = ceil(maxY / u).toInt()
-            (1 .. count).map { it * u }
+            (1..count).map { it * u }
         }
+
         is Scaling.Fixed -> {
             require(0 < scaling.hash)
             val count = ceil(maxY / scaling.hash).toInt()
-            (1 .. count).map { it * scaling.hash }
+            (1..count).map { it * scaling.hash }
         }
     }
 
-    val image = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
-    image.withGraphics2D {
-        background = Color.WHITE
+    return BufferedImage(width, height, BufferedImage.TYPE_INT_RGB).withGraphics2D {
         val bounds = Rectangle(0.0, 0.0, width.toDouble(), height.toDouble())
-        withColor(settings.backgroundColor) {
-            fill(bounds)
-        }
+        withColor(settings.backgroundColor) { fill(bounds) }
         val center = Point(width / 2.0, height / 2.0)
-        // The maximum square real estate.
+        // The maximum radial real estate.
         val extent = max(center.x, center.y)
         // We need to leave room for the labels around the edge.
         val labelFont =
-            if (null == settings.labels.size) font
+            if (null == settings.labels.size) font.deriveFont(Font.BOLD)
             else font.deriveFont(Font.BOLD, settings.labels.size!!.toFloat())
         val margin = getFontMetrics(labelFont).let { metrics ->
             keys.fold(metrics.ascent.toDouble()) { max, key ->
@@ -114,7 +111,7 @@ fun createSpiderWebPlot(
             (0 until keys.size).map { it * dt - PI / 2.0 }
         }
         // concentric hashes
-        radials.forEach{ radius ->
+        radials.forEach { radius ->
             val ds = radius / scale
             val w = (2 * ds).toInt()
             // circle
@@ -144,28 +141,22 @@ fun createSpiderWebPlot(
         if (null != settings.dataLines.thickness)
             stroke = BasicStroke(settings.dataLines.thickness!!.toFloat())
         // Fill the list with the default color if it's too short.
-        val colors = settings.dataLines.colors.let {
-            val defaultColor = settings.defaultColor
-            val need = data.size - it.size
-            if (0 < need) {
+        val dataLineColors = settings.dataLines.colors.let { dataLineColors ->
+            if (dataLineColors.size < data.size)
                 buildList {
-                    addAll(settings.dataLines.colors)
-                    repeat(need) { add(defaultColor) }
+                    addAll(dataLineColors);
+                    repeat(data.size - dataLineColors.size) { add(settings.defaultColor) }
                 }
-            } else it
+            else dataLineColors
         }
-        data.toList().zip(colors).forEach { (data, color) ->
+        data.toList().zip(dataLineColors).forEach { (data, color) ->
             withColor(color) {
-                val path = buildPath {
-                    data.second.zip(angles) { data, theta ->
-                        val r = data.second / scale
-                        add(center.movePolar(r, theta))
+                draw(buildPath {
+                    data.zip(angles).forEach { (data, theta) ->
+                        add(center.movePolar(data.second / scale, theta))
                     }
-                }
-                draw(path)
+                })
             }
         }
     }
-
-    return image
 }
