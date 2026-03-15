@@ -2,10 +2,7 @@ package wafna.plotz.charts
 
 import kotlin.math.PI
 import kotlin.math.ceil
-import kotlin.math.floor
-import kotlin.math.log
 import kotlin.math.max
-import kotlin.math.pow
 import kotlin.math.roundToInt
 import wafna.exocorps.util.buildPath
 import wafna.plotz.graphics.Line
@@ -20,13 +17,18 @@ import java.awt.Font
 import java.awt.image.BufferedImage
 
 class LineSettings {
-    var color: Color? = null
-    var thickness: Double? = 0.5
+    var color: Color = Color.GRAY
+    var thickness: Float = 0.5f
 }
 
 class LabelSettings {
-    var color: Color? = null
+    var color: Color = Color.BLACK
     var size: Double? = null
+}
+
+class DataLineSettings {
+    var colors = emptyList<Color>()
+    var thickness: Double? = null
 }
 
 sealed class Scaling {
@@ -39,9 +41,8 @@ class PlotSettings {
     var backgroundColor = Color.WHITE
     var defaultColor = Color.BLACK
     var chartLines = LineSettings()
-    var dataLines = LineSettings()
+    var dataLines = DataLineSettings()
     var labels = LabelSettings()
-    var dataColors = emptyList<Color>()
     var scaling: Scaling = Scaling.Auto()
 }
 
@@ -68,12 +69,14 @@ fun createSpiderWebPlot(
 
     val radials = when (val scaling = settings.scaling) {
         is Scaling.Auto -> {
+            require(0 < scaling.hashes)
             val m = ceil(maxY / 10.0) * 10.0
             val u = m / scaling.hashes
             val count = ceil(maxY / u).toInt()
             (1 .. count).map { it * u }
         }
         is Scaling.Fixed -> {
+            require(0 < scaling.hash)
             val count = ceil(maxY / scaling.hash).toInt()
             (1 .. count).map { it * scaling.hash }
         }
@@ -89,7 +92,7 @@ fun createSpiderWebPlot(
         val center = Point(width / 2.0, height / 2.0)
         // The maximum square real estate.
         val extent = max(center.x, center.y)
-        // We need to leave room for the labels.
+        // We need to leave room for the labels around the edge.
         val labelFont =
             if (null == settings.labels.size) font
             else font.deriveFont(Font.BOLD, settings.labels.size!!.toFloat())
@@ -100,14 +103,13 @@ fun createSpiderWebPlot(
         } * 1.05 // plus some padding
 
         val maxRadius = extent - margin
-        require(0.0 < maxRadius) { "Singularity!" }
-        val labelRadius = extent - margin / 2.0
+        require(0.0 <= maxRadius) { "Singularity!" }
         // points per pixel
         val scale = radials.last() / maxRadius
         // Grid lines.
-        val gridLineColor = settings.chartLines.color ?: settings.defaultColor
+        val gridLineColor = settings.chartLines.color
         color = gridLineColor
-        stroke = BasicStroke(settings.chartLines.thickness?.toFloat() ?: 1f)
+        stroke = BasicStroke(settings.chartLines.thickness)
         val angles = (2 * PI / keys.size).let { dt ->
             (0 until keys.size).map { it * dt - PI / 2.0 }
         }
@@ -115,6 +117,7 @@ fun createSpiderWebPlot(
         radials.forEach{ radius ->
             val ds = radius / scale
             val w = (2 * ds).toInt()
+            // circle
             drawOval((center.x - ds).toInt(), (center.y - ds).toInt(), w, w)
             // magnitudes
             val magOffset = PI / keys.size
@@ -129,23 +132,24 @@ fun createSpiderWebPlot(
             }
         }
         font = labelFont
+        val labelRadius = extent - margin / 2.0
+        color = settings.labels.color
         keys.zip(angles).forEach { (key, theta) ->
             // radial hashes
             draw(Line(center, center.movePolar(maxRadius, theta)))
             // labels
-            color = settings.labels.color ?: settings.defaultColor
             centeredText(key, center.movePolar(labelRadius, theta))
         }
         // Data
         if (null != settings.dataLines.thickness)
-            stroke = BasicStroke(5f)
+            stroke = BasicStroke(settings.dataLines.thickness!!.toFloat())
         // Fill the list with the default color if it's too short.
-        val colors = settings.dataColors.let {
-            val defaultColor = settings.dataLines.color ?: settings.defaultColor
+        val colors = settings.dataLines.colors.let {
+            val defaultColor = settings.defaultColor
             val need = data.size - it.size
             if (0 < need) {
                 buildList {
-                    addAll(settings.dataColors)
+                    addAll(settings.dataLines.colors)
                     repeat(need) { add(defaultColor) }
                 }
             } else it

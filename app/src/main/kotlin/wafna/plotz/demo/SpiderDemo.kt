@@ -64,28 +64,22 @@ private fun scores(n: Int, mean: Double, stdDev: Double) =
 
 fun main() {
     DemoApp("Plotz!").apply {
-        pack()
-        isVisible = true
-        val agencies = listOf("NSA", "CIA", "FBI", "DIA", "DEA", "ATF")
-        val data = agencies.size.let { size ->
+        val groups = listOf("Alfa", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf")
+        val data = groups.size.let { size ->
             mapOf(
-                "Alfa" to agencies.zip(scores(size, 50.0, 25.0)),
-                "Bravo" to agencies.zip(scores(size,60.0, 15.0)),
-                "Charlie" to agencies.zip(scores(size,70.0, 20.0)),
+                "Bing" to groups.zip(scores(size, 50.0, 25.0)),
+                "Bang" to groups.zip(scores(size, 60.0, 15.0)),
+                "Boom" to groups.zip(scores(size, 70.0, 20.0)),
             )
         }
         val chart = createSpiderWebPlot(data, 500, 500) {
             scaling = Scaling.Fixed(25.0)
-            with(chartLines) {
-                color = Color.GRAY
-                thickness = .5
-            }
-            with(this.labels) {
-                color = Color.BLACK
-                size = 14.0
-            }
-            dataColors = listOf(Color.GREEN, Color.BLUE, Color.ORANGE)
+            dataLines.colors = listOf(Color.GREEN, Color.BLUE, Color.MAGENTA)
+            dataLines.thickness = 4.0
+            labels.size = 14.0
         }
         setChart(chart)
+        pack()
+        isVisible = true
     }
 }
