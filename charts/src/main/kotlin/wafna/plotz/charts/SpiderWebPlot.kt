@@ -51,6 +51,7 @@ fun createSpiderWebPlot(
     height: Int,
     configure: PlotSettings.() -> Unit = {}
 ): BufferedImage {
+    val settings = PlotSettings().apply { configure() }
     data.forEach {
         require(it.value.map { it.second }.all { 0 <= it }) { "ALl data values must be positive." }
     }
@@ -65,17 +66,16 @@ fun createSpiderWebPlot(
         group.value.fold(max) { max, y -> max(max, y.second) }
     }
 
-//    val radialHashes =
-    val settings = PlotSettings().apply { configure() }
-    val maxRadial = when (val scaling = settings.scaling) {
+    val radials = when (val scaling = settings.scaling) {
         is Scaling.Auto -> {
             val m = ceil(maxY / 10.0) * 10.0
             val u = m / scaling.hashes
-            ceil(maxY / u) * u
+            val count = ceil(maxY / u).toInt()
+            (1 .. count).map { it * u }
         }
-
         is Scaling.Fixed -> {
-            ceil(maxY / scaling.hash) * scaling.hash
+            val count = ceil(maxY / scaling.hash).toInt()
+            (1 .. count).map { it * scaling.hash }
         }
     }
 
@@ -100,10 +100,10 @@ fun createSpiderWebPlot(
         } * 1.05 // plus some padding
 
         val maxRadius = extent - margin
-        require(0.0 < maxRadius) { "Not enough room!" }
+        require(0.0 < maxRadius) { "Singularity!" }
         val labelRadius = extent - margin / 2.0
         // points per pixel
-        val scale = maxRadial / maxRadius
+        val scale = radials.last() / maxRadius
         // Grid lines.
         val gridLineColor = settings.chartLines.color ?: settings.defaultColor
         color = gridLineColor
@@ -112,9 +112,9 @@ fun createSpiderWebPlot(
             (0 until keys.size).map { it * dt - PI / 2.0 }
         }
         // concentric hashes
-        (1..4).forEach { i ->
-            val ds = i * maxRadius / 4
-            val w = (ds * 2).toInt()
+        radials.forEach{ radius ->
+            val ds = radius / scale
+            val w = (2 * ds).toInt()
             drawOval((center.x - ds).toInt(), (center.y - ds).toInt(), w, w)
             // magnitudes
             val magOffset = PI / keys.size
